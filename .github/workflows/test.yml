@@ -44,4 +44,7 @@ jobs:
       - uses: ./.github/actions/python-poetry-env
         with:
           python-version: ${{ matrix.python-version }}
-      - run: apt install libcap-dev; poetry run pytest
+      - name: install libcap-dev
+        run: apt install libcap-dev
+      - name: run pytest
+        run: poetry run pytest
