@@ -39,8 +39,8 @@ jobs:
         run: |
           CURRENT_VERSION=$(git show HEAD:.cruft.json | jello -r "_['commit'][:8]")
           NEXT_VERSION=$(jello -r "_['commit'][:8]" < .cruft.json)
-          echo "current_version=$(CURRENT_VERSION)" >>$GITHUB_OUTPUT
-          echo "next_version=$(NEXT_VERSION)" >>$GITHUB_OUTPUT
+          echo "current_version='$CURRENT_VERSION'" >>"$GITHUB_OUTPUT"
+          echo "next_version='$NEXT_VERSION'" >>$GITHUB_OUTPUT
 
       - name: Get changelog
         id: get_changelog
