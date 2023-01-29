@@ -1,5 +1,4 @@
 import pathlib
-import time
 
 from picamera2 import Picamera2  # type: ignore
 from picamera2.encoders import H264Encoder  # type: ignore
@@ -27,7 +26,6 @@ class Recorder:
         """
         self.output.fileoutput = filename
         self.output.start()
-        time.sleep(0.2)
         self.output.stop()
 
     def __del__(self) -> None:

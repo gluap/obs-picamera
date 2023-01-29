@@ -10,9 +10,6 @@ import obs_picamera.recorder as rec  # noqa E402 # isort: skip
 
 
 def test_recorder_init(tmp_path: pathlib.Path) -> None:
-    rec.Picamera2 = MagicMock()
-    rec.CircularOutput = MagicMock()
-    rec.H264Encoder = MagicMock()
     recorder = rec.Recorder()
     recorder.save_snippet_to(tmp_path)
     assert recorder.output.fileoutput == tmp_path
