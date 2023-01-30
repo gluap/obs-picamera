@@ -11,6 +11,6 @@ import obs_picamera.recorder as rec  # noqa E402 # isort: skip
 
 def test_recorder_init(tmp_path: pathlib.Path) -> None:
     recorder = rec.Recorder()
-    fp = open(tmp_path/"fck", "wb")
+    fp = open(tmp_path / "fck", "wb")
     recorder.save_snippet_to(fp)
     assert recorder.output.fileoutput == fp
