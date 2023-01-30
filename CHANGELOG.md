@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- Bluetooth
+- Unittests
+- Command line script
+
 ## [0.0.2] - 2023-01-28
 ### Added
 - Set up github workflows and created pypi package
