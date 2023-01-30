@@ -11,6 +11,8 @@ sys.modules["bleak.AdvertisementData"] = MagicMock()
 sys.modules["bleak.BleakScanner"] = MagicMock()
 sys.modules["bleak.BLEDevice"] = MagicMock()
 
+asyncio.set_event_loop(obs_picamera.bluetooth.loop)
+
 
 def test_bluetooth() -> None:
     obs_picamera.bluetooth.timeout_seconds = 0.5
