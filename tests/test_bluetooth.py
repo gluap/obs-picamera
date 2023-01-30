@@ -13,7 +13,6 @@ sys.modules["bleak.BLEDevice"] = MagicMock()
 
 
 def test_bluetooth() -> None:
-    obs_picamera.bluetooth.loop = asyncio.new_event_loop()
     obs_picamera.bluetooth.timeout_seconds = 0.5
 
     with patch("bleak.BleakScanner") as p:
@@ -33,7 +32,7 @@ def test_bluetooth() -> None:
 
         p.return_value.start = AsyncMock()
         p.return_value.stop = AsyncMock()
-        obs_picamera.bluetooth.loop.run_until_complete(scanner.run())
+        asyncio.run(scanner.run())
 
         scanner = obs_picamera.bluetooth.ObsScanner()
 
@@ -50,7 +49,7 @@ def test_bluetooth() -> None:
             )
             obsbt = obs_picamera.bluetooth.ObsBT(scanner=scanner)
             obsbt.unittesting = True
-            obs_picamera.bluetooth.loop.run_until_complete(obsbt.connect())
+            asyncio.run(obsbt.connect())
             obsbt.bt_connected = False
             obsbt.obs_address = "haha"
-            obs_picamera.bluetooth.loop.run_until_complete(obsbt.run())
+            asyncio.run(obsbt.run())
