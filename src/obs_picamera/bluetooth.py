@@ -122,8 +122,7 @@ class ObsBT:
 class ObsScannerError(Exception):
     pass
 
-
-if __name__ == "__main__":  # pragma: nocov
+if __name__ == "__main__": # pragma: no cover
     while True:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
