@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import struct
+import sys
 import time
 from typing import Callable, List, Optional
 
@@ -24,6 +25,10 @@ class ObsScanner:
     unittesting: bool = False
 
     def __init__(self) -> None:
+        if sys.version_info < (3, 10):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
         self._scanner = bleak.BleakScanner(detection_callback=self.detection_callback)
         self.obs_address: str | None = None
         self.scanning = asyncio.Event()
