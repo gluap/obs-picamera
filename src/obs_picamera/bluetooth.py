@@ -12,9 +12,6 @@ CLOSE_PASS_NOTIFICATION_UUID = "1FE7FAF9-CE63-4236-0004-000000000003"
 HANDLEBAR_OFFSET_UUID = "1FE7FAF9-CE63-4236-0004-000000000004"
 TRACK_ID_UUID = "1FE7FAF9-CE63-4236-0004-000000000005"
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
 logger = logging.getLogger(__name__)
 #
 # Blutooth scanner config
