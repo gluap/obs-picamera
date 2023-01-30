@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import struct
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import bleak
 from bleak.exc import BleakDeviceNotFoundError
@@ -54,7 +54,7 @@ class ObsScanner:
 
 
 class ObsBT:
-    def __init__(self, scanner: ObsScanner | None = None) -> None:
+    def __init__(self, scanner: Optional[ObsScanner] = None) -> None:
         self.bt_connected: bool = False
         self.obs_address: str | None = None
         self.my_scanner: ObsScanner = scanner if scanner is not None else ObsScanner()
