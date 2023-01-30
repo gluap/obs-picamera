@@ -2,8 +2,6 @@ import asyncio
 import logging
 import struct
 import time
-import sys
-
 from typing import Callable, List, Optional
 
 import bleak
@@ -14,6 +12,8 @@ CLOSE_PASS_NOTIFICATION_UUID = "1FE7FAF9-CE63-4236-0004-000000000003"
 HANDLEBAR_OFFSET_UUID = "1FE7FAF9-CE63-4236-0004-000000000004"
 TRACK_ID_UUID = "1FE7FAF9-CE63-4236-0004-000000000005"
 
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 logger = logging.getLogger(__name__)
 #
@@ -27,9 +27,6 @@ class ObsScanner:
     unittesting: bool = False
 
     def __init__(self) -> None:
-        if sys.version_info < (3, 10):
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
         self._scanner = bleak.BleakScanner(detection_callback=self.detection_callback)
         self.obs_address: str | None = None
         self.scanning = asyncio.Event()

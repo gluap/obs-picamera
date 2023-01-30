@@ -21,7 +21,6 @@ def main() -> None:
         )
         json.dump(kwargs, open(target_dir / f"{kwargs['sensortime']}.json", "w"))
 
-
     while True:
         try:
             obsbt = ObsBT()
