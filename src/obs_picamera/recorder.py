@@ -1,4 +1,4 @@
-import pathlib
+from typing import BinaryIO
 
 from picamera2 import Picamera2  # type: ignore
 from picamera2.encoders import H264Encoder  # type: ignore
@@ -18,13 +18,13 @@ class Recorder:
         self.output = CircularOutput()
         self.picam2.start_recording(self.encoder, self.output)
 
-    def save_snippet_to(self, filename: pathlib.Path) -> None:
+    def save_snippet_to(self, fp: BinaryIO) -> None:
         """
         Save the last 5 seconds of video from the buffer to the filename
-        :param filename:
+        :param fp:
         :return:
         """
-        self.output.fileoutput = filename
+        self.output.fileoutput = fp
         self.output.start()
         self.output.stop()
 

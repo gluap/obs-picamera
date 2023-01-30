@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import struct
+import time
 from typing import Callable, List, Optional
 
 import bleak
@@ -42,9 +43,9 @@ class ObsScanner:
             self.obs_address = None
         await self._scanner.start()
         self.scanning.set()
-        end_time = loop.time() + timeout_seconds
+        end_time = time.time() + timeout_seconds
         while self.scanning.is_set():
-            if loop.time() > end_time:
+            if time.time() > end_time:
                 self.scanning.clear()
                 logger.info("Scan has timed out so we terminate")
             await asyncio.sleep(0.1)
@@ -68,7 +69,7 @@ class ObsBT:
         self.unittesting: bool = False
 
     def find_obs(self) -> None:
-        loop.run_until_complete(self.my_scanner.run())
+        asyncio.run(self.my_scanner.run())
         self.obs_address = self.my_scanner.obs_address
         assert self.obs_address is not None
 
