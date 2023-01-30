@@ -1,10 +1,8 @@
 import asyncio
-import logging
 import struct
 import sys
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import bleak.exc
 import pytest
 
 import obs_picamera.bluetooth  # flake8: noqa

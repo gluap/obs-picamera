@@ -11,7 +11,7 @@ CLOSE_PASS_NOTIFICATION_UUID = "1FE7FAF9-CE63-4236-0004-000000000003"
 HANDLEBAR_OFFSET_UUID = "1FE7FAF9-CE63-4236-0004-000000000004"
 TRACK_ID_UUID = "1FE7FAF9-CE63-4236-0004-000000000005"
 
-logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 #
 # Blutooth scanner config
@@ -29,7 +29,7 @@ class ObsScanner:
         self.scanning = asyncio.Event()
 
     def detection_callback(
-            self, device: bleak.BLEDevice, advertisement_data: bleak.AdvertisementData
+        self, device: bleak.BLEDevice, advertisement_data: bleak.AdvertisementData
     ) -> None:
         if device.name.startswith("OpenBikeSensor"):
             logger.info(f"Found OpenBikeSensor {device}")
@@ -77,12 +77,14 @@ class ObsBT:
         t, l, r = struct.unpack("Ihh", data)
         logger.info(f"sensortime: {t}, Left distance {l}, right distance {r}")
         for callback in self.overtaking_callbacks:
-            callback(distance_l=l - self.handlebar_left,
-                     distance_r=r - self.handlebar_right,
-                     handlebars_l=self.handlebar_left,
-                     handlebar_r=self.handlebar_right,
-                     track_id=self.track_id,
-                     sensortime=t)
+            callback(
+                distance_l=l - self.handlebar_left,
+                distance_r=r - self.handlebar_right,
+                handlebars_l=self.handlebar_left,
+                handlebar_r=self.handlebar_right,
+                track_id=self.track_id,
+                sensortime=t,
+            )
 
     async def connect(self) -> None:
         def disconnected_callback(client: bleak.BleakClient) -> None:
@@ -90,7 +92,7 @@ class ObsBT:
             self.bt_connected = False
 
         async with bleak.BleakClient(
-                self.obs_address, disconnected_callback=disconnected_callback, timeout=25  # type: ignore
+            self.obs_address, disconnected_callback=disconnected_callback, timeout=25  # type: ignore
         ) as client:
             logger.info(f"Connected: {client.is_connected}")
             await client.start_notify(
