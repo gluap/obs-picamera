@@ -13,15 +13,17 @@ homepage = "https://gluap.github.io/obs-picamera"
 repository = "https://github.com/gluap/obs-picamera"
 
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Typing :: Typed",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 
 packages = [
@@ -29,7 +31,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10, <4.0"
+python = ">=3.9, <4.0"
 picamera2 = ">=0.3.8"
 bleak = ">=0.19.5"
 pytest-mock = ">=3.10.0"
@@ -44,7 +46,7 @@ flake8-comprehensions = "*"
 flake8-debugger = "*"
 flake8-eradicate = "*"
 isort = "*"
-mkdocstrings = {version = ">=0.18", extras = ["python"]}
+mkdocstrings = { version = ">=0.18", extras = ["python"] }
 mkdocs-material = "*"
 mypy = "*"
 pep8-naming = "*"
@@ -67,7 +69,7 @@ profile = "black"
 src_paths = ["src", "tests"]
 
 [tool.black]
-target-version = ["py310", "py311"]
+target-version = ["py39", "py310", "py311"]
 include = '\.pyi?$'
 
 [tool.pytest.ini_options]

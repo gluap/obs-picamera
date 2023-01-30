@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
+- re-introduce py39 (as raspbian has no 310 yet.)
+
+### Fixed
+
 - File handling from command line script
 - Use of non-existant loop
 - Rename command line scripts
