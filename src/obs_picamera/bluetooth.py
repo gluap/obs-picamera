@@ -29,7 +29,7 @@ class ObsScanner:
         self.scanning = asyncio.Event()
 
     def detection_callback(
-        self, device: bleak.BLEDevice, advertisement_data: bleak.AdvertisementData
+            self, device: bleak.BLEDevice, advertisement_data: bleak.AdvertisementData
     ) -> None:
         if device.name.startswith("OpenBikeSensor"):
             logger.info(f"Found OpenBikeSensor {device}")
@@ -59,8 +59,8 @@ class ObsBT:
         self.obs_address: str | None = None
         self.my_scanner: ObsScanner = scanner if scanner is not None else ObsScanner()
         self.find_obs()
-        self.left: str | None = None
-        self.right: str | None = None
+        self.handlebar_left: str | None = None
+        self.handlebar_right: str | None = None
         self.track_id: str | None = None
         self.overtaking_callbacks: List[Callable] = []
         self.recording_callbacks: List[Callable] = []
@@ -72,11 +72,17 @@ class ObsBT:
         self.obs_address = self.my_scanner.obs_address
         assert self.obs_address is not None
 
-    @staticmethod
-    def overtaking_handler(sender: str, data: bytearray) -> None:
+    def overtaking_handler(self, sender: str, data: bytearray) -> None:
         """Simple notification handler which prints the data received."""
         t, l, r = struct.unpack("Ihh", data)
         logger.info(f"sensortime: {t}, Left distance {l}, right distance {r}")
+        for callback in self.overtaking_callbacks:
+            callback(distance_l=l - self.handlebar_left,
+                     distance_r=r - self.handlebar_right,
+                     handlebars_l=self.handlebar_left,
+                     handlebar_r=self.handlebar_right,
+                     track_id=self.track_id,
+                     sensortime=t)
 
     async def connect(self) -> None:
         def disconnected_callback(client: bleak.BleakClient) -> None:
@@ -84,7 +90,7 @@ class ObsBT:
             self.bt_connected = False
 
         async with bleak.BleakClient(
-            self.obs_address, disconnected_callback=disconnected_callback, timeout=25  # type: ignore
+                self.obs_address, disconnected_callback=disconnected_callback, timeout=25  # type: ignore
         ) as client:
             logger.info(f"Connected: {client.is_connected}")
             await client.start_notify(
@@ -92,9 +98,9 @@ class ObsBT:
             )
             self.track_id = (await client.read_gatt_char(TRACK_ID_UUID)).decode("utf-8")
             handlebar = await client.read_gatt_char(HANDLEBAR_OFFSET_UUID)
-            self.left, self.right = struct.unpack("hh", handlebar)
+            self.handlebar_left, self.handlebar_right = struct.unpack("hh", handlebar)
             logger.info(
-                f"track id is {self.track_id}, handlebar: <{self.left} | {self.right} >"
+                f"track id is {self.track_id}, handlebar: <{self.handlebar_left} | {self.handlebar_right} >"
             )
             self.bt_connected = True
             self.bt_connecting = False
@@ -122,7 +128,8 @@ class ObsBT:
 class ObsScannerError(Exception):
     pass
 
-if __name__ == "__main__": # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     while True:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
