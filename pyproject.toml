@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "obs-picamera"
-version = "0.0.3"
+version = "0.0.4"
 description = "A python module to record video of overtaking events to allow vehicle type identification of OpenBikeSensor overtaking events."
 authors = [
     "gluap <github@pgoergen.de>",
