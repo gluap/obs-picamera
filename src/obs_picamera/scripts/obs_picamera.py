@@ -11,7 +11,6 @@ logger = logging.getLogger()
 
 
 def main() -> None:
-    obsbt = ObsBT()
     recorder = Recorder()
 
     def record_callback(**kwargs) -> None:  # type: ignore
@@ -22,10 +21,11 @@ def main() -> None:
         )
         json.dump(kwargs, open(target_dir / f"{kwargs['sensortime']}.json", "w"))
 
-    obsbt.overtaking_callbacks.append(record_callback)
+
     while True:
         try:
             obsbt = ObsBT()
             asyncio.run(obsbt.run())
-        except (ObsScannerError):
+            obsbt.overtaking_callbacks.append(record_callback)
+        except ObsScannerError:
             logger.exception("Restarting bluetooth connection")
