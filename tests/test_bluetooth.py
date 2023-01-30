@@ -11,14 +11,10 @@ sys.modules["bleak.AdvertisementData"] = MagicMock()
 sys.modules["bleak.BleakScanner"] = MagicMock()
 sys.modules["bleak.BLEDevice"] = MagicMock()
 
-asyncio.set_event_loop(obs_picamera.bluetooth.loop)
 
-
+@pytest.mark.asyncio
 def test_bluetooth() -> None:
     obs_picamera.bluetooth.timeout_seconds = 0.5
-
-    if sys.version_info < (3, 10):
-        asyncio.set_event_loop(obs_picamera.bluetooth.loop)
 
     with patch("bleak.BleakScanner") as p:
         p.return_value.start = AsyncMock()
