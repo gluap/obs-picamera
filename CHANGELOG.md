@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Fixed
-
 - re-introduce py39 (as raspbian has no 310 yet.)
+- better camera settings, ring buffer tested.
 
 ## [0.0.4] - 2023-01-30
 ### Fixed

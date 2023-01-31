@@ -20,11 +20,12 @@ def main() -> None:
             open(target_dir / f"{kwargs['sensortime']}.h264", "wb")
         )
         json.dump(kwargs, open(target_dir / f"{kwargs['sensortime']}.json", "w"))
+        logger.info(f"savedd to {target_dir}")
 
     while True:
         try:
             obsbt = ObsBT()
-            asyncio.run(obsbt.run())
             obsbt.overtaking_callbacks.append(record_callback)
+            asyncio.run(obsbt.run())
         except ObsScannerError:
             logger.exception("Restarting bluetooth connection")
