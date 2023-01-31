@@ -16,13 +16,43 @@
 
 ---
 
-A python module to record video of overtaking events to allow vehicle type identification of OpenBikeSensor overtaking events.
+A python module to record video of overtaking events to allow vehicle type identification for OpenBikeSensor overtaking events.
 
-## Installation
+## Building the device
+
+This software should work with a Pi Zero W or Pi Zero 2 with raspberry pi camera independently from the case it's mounted in.
+
+The idea is to run this on a raspberry pi zero case which can be somehow mounted on the bicycle. An example case for such a mounting with a list of components used can be found [here](https://github.com/gluap/OpenBikeSensor3dPrintableCase/tree/camlid/src/Attachments), compiled STL files to match it are available [with logos](https://github.com/gluap/OpenBikeSensor3dPrintableCase/tree/camlid/export/logo/OpenBikeSensor) [and without](https://github.com/gluap/OpenBikeSensor3dPrintableCase/tree/camlid/export/Attachments)
+
+## Installation of ``obs-picamera``
+
+The software is meant to run on a raspberry pi zero. I suggest installing it with Raspberry Pi os. As prerequisites the following packages are required:
+
+```commandline
+sudo apt install python-picamera2 python3-pip
+```
+
+The package can then be installed as usual via pip.
 
 ```sh
-pip install obs-picamera
+pip install --user obs-picamera # add --upgrade if you want to upgrade
 ```
+
+## Using ``obs-picamera``
+
+You can run the program by calling (``pip install --user`` has installed the binary in your ``~/.local/bin/``)
+```commandline
+obs_picamera
+```
+
+When it finds an OpenBikeSensor via bluetooth enabled, it will pair with it and whenever it receives an overtaking event
+- Events for one OpenBikeSensor Track are stored in a directory with the track-id as the directory name.
+- For each event a short ``h264`` video file is saved, the filename matching the system time of the OpenBikeSensor.
+- Next to the video file a ``.json`` file with the Data from the overtaking event is placed. Its content is self-explanatory. The distance already has the handlebar width deducted.
+
+I suggest starting obs_picamera automatically at boot - for instance via crontab entry and switching the pi on while still in the home WIFI (which will enable it to pick up a sensible time). Or one may create a phone wifi for it to pick up the time and date
+
+
 
 ## Development
 
