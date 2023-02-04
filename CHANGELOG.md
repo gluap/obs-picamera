@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- Things for a GUI
+- Save distance history with video
+
 ## [0.1.0] - 2023-01-31
 ### Added
 - Documentation
@@ -36,4 +40,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [0.0.4]: https://github.com/gluap/obs-picamera/compare/0.0.3...0.0.4
 [0.0.3]: https://github.com/gluap/obs-picamera/compare/0.0.2...0.0.3
 [0.0.2]: https://github.com/gluap/obs-picamera/tree/0.0.2
-

@@ -3,7 +3,8 @@ import logging
 import struct
 import sys
 import time
-from typing import Callable, List, Optional
+from collections import deque
+from typing import Callable, List, NamedTuple, Optional
 
 import bleak
 from bleak.exc import BleakDeviceNotFoundError
@@ -19,6 +20,12 @@ logger = logging.getLogger(__name__)
 #
 
 timeout_seconds: float = 15
+
+
+class DistanceMeasurement(NamedTuple):
+    sensortime: int
+    distance_l: int
+    distance_r: int
 
 
 class ObsScanner:
@@ -71,6 +78,7 @@ class ObsBT:
         self.recording_callbacks: List[Callable] = []
         self.bt_connecting: bool = False
         self.unittesting: bool = False
+        self.history: deque = deque(maxlen=100)
 
     def find_obs(self) -> None:
         asyncio.run(self.my_scanner.run())
@@ -89,7 +97,14 @@ class ObsBT:
                 handlebar_r=self.handlebar_right,
                 track_id=self.track_id,
                 sensortime=t,
+                history=list(self.history),
             )
+
+    def history_handler(self, sender: str, data: bytearray) -> None:
+        t, l, r = struct.unpack("Ihh", data)
+        self.history.append(
+            DistanceMeasurement(t, l - self.handlebar_left, r - self.handlebar_right)
+        )
 
     async def connect(self) -> None:
         def disconnected_callback(client: bleak.BleakClient) -> None:
@@ -102,6 +117,9 @@ class ObsBT:
             logger.info(f"Connected: {client.is_connected}")
             await client.start_notify(
                 CLOSE_PASS_NOTIFICATION_UUID, self.overtaking_handler
+            )
+            await client.start_notify(
+                SENSOR_DISTANCE_NOTIFICATION_UUID, self.history_handler
             )
             self.track_id = (await client.read_gatt_char(TRACK_ID_UUID)).decode("utf-8")
             handlebar = await client.read_gatt_char(HANDLEBAR_OFFSET_UUID)

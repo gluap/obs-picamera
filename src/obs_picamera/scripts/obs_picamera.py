@@ -14,7 +14,7 @@ def main() -> None:
     recorder = Recorder()
 
     def record_callback(**kwargs) -> None:  # type: ignore
-        target_dir = Path(kwargs["track_id"])
+        target_dir = Path("/home/pi/recordings") / kwargs["track_id"]
         target_dir.mkdir(parents=True, exist_ok=True)
         recorder.save_snippet_to(
             open(target_dir / f"{kwargs['sensortime']}.h264", "wb")
