@@ -6,8 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
-- Things for a GUI
+- Rudimentary GUI
 - Save distance history with video
+- Run via Fastapi
 
 ## [0.1.0] - 2023-01-31
 ### Added

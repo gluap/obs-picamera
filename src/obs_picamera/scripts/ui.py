@@ -14,23 +14,84 @@
    limitations under the License.
 """
 
-import asyncio
+import io
 import json
 import logging
+import os
 import threading
-from pathlib import Path
+import time
+import traceback
 
-from obs_picamera.bluetooth import ObsBT, ObsScannerError
-
-# from obs_picamera.recorder import Recorder
+import remi
+import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-from threading import Timer
-
 import remi.gui as gui
 from remi import App, start
+
+API_HOST = (
+    "http://localhost:5000" if "API_HOST" not in os.environ else os.environ["API_HOST"]
+)
+
+
+class RefreshImageWidget(remi.gui.Image):
+    def __init__(self, url=None, **kwargs):
+        self.app_instance = None
+        super().__init__("/res:logo.jpg", **kwargs)
+        self.frame_index = 0
+        self._buf = None
+        self.url = url
+
+    def search_app_instance(self, node):
+        if issubclass(node.__class__, remi.server.App):
+            return node
+        if not hasattr(node, "get_parent"):
+            return None
+        return self.search_app_instance(node.get_parent())
+
+    def load(self):
+        try:
+            data = requests.get(self.url)
+            self._buf = io.BytesIO(data.content)
+            self.refresh()
+        except requests.ConnectionError:
+            logger.info("couldn't reload")
+
+    def refresh(self, *args):
+        if self.app_instance == None:
+            self.app_instance = self.search_app_instance(self)
+            if self.app_instance == None:
+                return
+        self.frame_index = self.frame_index + 1
+        self.app_instance.execute_javascript(
+            """
+            url = '/%(id)s/get_image_data?index=%(frame_index)s';
+
+            xhr = null;
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'blob'
+            xhr.onload = function(e){
+                urlCreator = window.URL || window.webkitURL;
+                urlCreator.revokeObjectURL(document.getElementById('%(id)s').src);
+                imageUrl = urlCreator.createObjectURL(this.response);
+                document.getElementById('%(id)s').src = imageUrl;
+            }
+            xhr.send();
+            """
+            % {"id": id(self), "frame_index": self.frame_index}
+        )
+
+    def get_image_data(self, index=0):
+        try:
+            self._buf.seek(0)
+            headers = {"Content-type": "image/jpeg"}
+            return [self._buf.read(), headers]
+        except:
+            print(traceback.format_exc())
+        return None, None
 
 
 class MyApp(App):
@@ -38,53 +99,92 @@ class MyApp(App):
         super().__init__(*args)
 
     def idle(self):
-        if hasattr(self, "counter"):
-            self.counter.set_text(f"DATA {self.count} {str(self.data)}")
+        if hasattr(self, "data_table"):
+            i = 0
+            for k, v in self.data.items():
+                i += 1
+                self.data_table.item_at(i, 0).set_text(str(k))
+                self.data_table.item_at(i, 1).set_text(str(v))
         else:
             logger.info("no counter")
 
     def _get_list_from_app_args(self, name):
         return super()._get_list_from_app_args(name)
 
-    def data_received(self, **kwargs):
-        logger.info(kwargs)
-        self.data = kwargs
+    def preview_screen(self) -> gui.Widget:
+        self.to_review = gui.Button("review tracks")
+        tabs = gui.HBox(
+            children=[self.to_review],
+            style={"margin": "0px auto", "background-color": "lightgray"},
+        )
+
+        self.stop_flag = False
+
+        self.img = RefreshImageWidget(
+            f"{API_HOST}/v1/preview.jpeg", margin="10px", width=0, height=0
+        )
+        self.video = gui.VideoPlayer(width=806, height=600)
+        self.check = gui.CheckBoxLabel(
+            "Preview", False, width=200, height=30, margin="10px"
+        )
+
+        self.data_table = gui.TableWidget(8, 2)
+        self.data_table.item_at(0, 0).set_text("k")
+        self.data_table.item_at(0, 1).set_text("v")
+
+        self.check.onchange.do(self.on_check_change)
+        video_container = gui.VBox(
+            [tabs, self.img, self.check, self.data_table], margin="8pt auto"
+        )
+
+        self.refresh = False
+        self.running = True
+        return video_container
+
+    def review_screen(self) -> gui.Widget:
+        self.to_preview = gui.Button("change page")
+        reviewcontainer = gui.HBox(
+            children=[self.to_preview],
+            style={"margin": "0px auto", "background-color": "lightgray"},
+        )
+        return reviewcontainer
 
     def main(self):
         self.data = {}
         # self.recorder = Recorder()
-        video_container = gui.Container(width="100%", margin="2px auto")
-        self.stop_flag = False
 
-        self.img = gui.Image("", margin="10px", width=806, height=600)
-        self.video = gui.VideoPlayer(width=806, height=600)
-        self.count = 0
-        self.counter = gui.Label("", width=200, height=30, margin="10px")
-        video_container.append([self.img, self.video, self.counter])
-        # kick of regular display of counter
-        self.display_counter()
-        t = threading.Thread(target=self.loop)
-        t.start()
-        return video_container
-
-    def loop(self):
-        while True:
-            try:
-                obsbt = ObsBT()
-                # obsbt.overtaking_callbacks.append(self.record_callback)
-                obsbt.recording_callbacks.append(self.data_received)
-                asyncio.run(obsbt.run())
-            except ObsScannerError:
-                logger.exception("Restarting bluetooth connection")
-
-    def record_callback(self, **kwargs) -> None:
-        target_dir = Path("/home/pi/recordings") / kwargs["track_id"]
-        target_dir.mkdir(parents=True, exist_ok=True)
-        self.recorder.save_snippet_to(
-            open(target_dir / f"{kwargs['sensortime']}.h264", "wb")
+        self.previewcontainer = self.preview_screen()
+        self.reviewcontainer = self.review_screen()
+        self.to_review.onclick.do(self.set_different_root_widget, self.reviewcontainer)
+        self.to_preview.onclick.do(
+            self.set_different_root_widget, self.previewcontainer
         )
-        json.dump(kwargs, open(target_dir / f"{kwargs['sensortime']}.json", "w"))
-        logger.info(f"saved to {target_dir}")
+
+        t = threading.Thread(target=self.update)
+        t.start()
+
+        return self.reviewcontainer
+
+    def set_different_root_widget(self, emitter, page_to_be_shown):
+        self.set_root_widget(page_to_be_shown)
+        self.check.set_value(False)
+        self.refresh = False
+
+    def update_data(self):
+        try:
+            current = requests.get(f"{API_HOST}/v1/state")
+            self.data = json.loads(current.content)
+        except requests.RequestException:
+            pass
+
+    def update(self):
+        lasttime: int = 0
+        while self.running:
+            time.sleep(0.1)
+            if self.refresh and lasttime != int(time.time()):
+                self.img.load()
+                lasttime = int(time.time())
+            self.update_data()
 
     def __main(self):
         # the margin 0px auto centers the main container
@@ -293,11 +393,6 @@ class MyApp(App):
         # returning the root widget
         return verticalContainer
 
-    def display_counter(self):
-        self.count += 1
-        if not self.stop_flag:
-            Timer(1, self.display_counter).start()
-
     # listener function
     def on_img_clicked(self, widget):
         self.lbl.set_text("Image clicked!")
@@ -316,7 +411,11 @@ class MyApp(App):
         self.lbl.set_text("SpinBox changed, new value: " + str(newValue))
 
     def on_check_change(self, widget, newValue):
-        self.lbl.set_text("CheckBox changed, new value: " + str(newValue))
+        self.refresh = newValue
+        if self.refresh:
+            self.img.set_size(806, 600)
+        else:
+            self.img.set_size(0, 0)
 
     def open_input_dialog(self, widget):
         self.inputDialog = gui.InputDialog(
@@ -391,6 +490,8 @@ class MyApp(App):
     def on_close(self):
         """Overloading App.on_close event to stop the Timer."""
         self.stop_flag = True
+        self.running = False
+
         super().on_close()
 
 
