@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-02-04
 ### Added
 - Rudimentary GUI
 - Save distance history with video
@@ -35,9 +36,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Set up github workflows and created pypi package
 
-[Unreleased]: https://github.com/gluap/obs-picamera/compare/0.1.0...master
+[Unreleased]: https://github.com/gluap/obs-picamera/compare/0.2.0...master
+[0.2.0]: https://github.com/gluap/obs-picamera/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/gluap/obs-picamera/compare/0.0.5...0.1.0
 [0.0.5]: https://github.com/gluap/obs-picamera/compare/0.0.4...0.0.5
 [0.0.4]: https://github.com/gluap/obs-picamera/compare/0.0.3...0.0.4
 [0.0.3]: https://github.com/gluap/obs-picamera/compare/0.0.2...0.0.3
 [0.0.2]: https://github.com/gluap/obs-picamera/tree/0.0.2
+
