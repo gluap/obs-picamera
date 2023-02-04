@@ -1,3 +1,4 @@
+from io import BytesIO
 from typing import BinaryIO
 
 from picamera2 import Picamera2  # type: ignore
@@ -17,7 +18,7 @@ class Recorder:
         dur = 10
         micro = int((1 / fps) * 1000000)
         vconfig = self.picam2.create_video_configuration(
-            main={"size": (2048, 1536)}, lores={"size": (800, 606)}, encode="lores"
+            main={"size": (800, 606)}, lores={"size": (800, 606)}, encode="lores"
         )
         vconfig["controls"]["FrameDurationLimits"] = (micro, micro)
         self.picam2.configure(vconfig)
@@ -38,6 +39,11 @@ class Recorder:
         """
         self.output.fileoutput = fp
         self.output.stop()
+
+    def jpeg_screenshot(self) -> bytes:
+        data = BytesIO()
+        self.picam2.capture_file(data, format="jpeg")
+        return data.getvalue()
 
     def __del__(self) -> None:
         self.picam2.stop_recording()
