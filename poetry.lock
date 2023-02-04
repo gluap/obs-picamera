@@ -2079,6 +2079,18 @@ rich = ">=10.14.0"
 toml = ">=0.10.2"
 
 [[package]]
+name = "types-toml"
+version = "0.10.8.2"
+description = "Typing stubs for toml"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-toml-0.10.8.2.tar.gz", hash = "sha256:51d428666b30e9cc047791f440d0f11a82205e789c40debbb86f3add7472cf3e"},
+    {file = "types_toml-0.10.8.2-py3-none-any.whl", hash = "sha256:3cf6a09449527b087b6c800a9d6d2dd22faf15fd47006542da7c9c3d067a6ced"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.4.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -2219,4 +2231,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <4.0"
-content-hash = "c98d3a3950029858b9b6e1ec7600366e51b6716dc66103a26b24c4c4420ba83b"
+content-hash = "a28ad6e4adc8884baa60f874fb1d9f2479cf78470def70e86368597cfc7f1d7c"
