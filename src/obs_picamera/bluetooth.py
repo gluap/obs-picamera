@@ -7,7 +7,7 @@ from collections import deque
 from typing import Callable, List, NamedTuple, Optional
 
 import bleak
-from bleak.exc import BleakDeviceNotFoundError
+from bleak.exc import BleakError
 
 SENSOR_DISTANCE_NOTIFICATION_UUID = "1FE7FAF9-CE63-4236-0004-000000000002"
 CLOSE_PASS_NOTIFICATION_UUID = "1FE7FAF9-CE63-4236-0004-000000000003"
@@ -32,7 +32,7 @@ class ObsScanner:
     unittesting: bool = False
 
     def __init__(self) -> None:
-        if sys.version_info < (3, 10):
+        if sys.version_info < (3, 10):  # pragma: no cover
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
@@ -70,9 +70,8 @@ class ObsBT:
         self.bt_connected: bool = False
         self.obs_address: str | None = None
         self.my_scanner: ObsScanner = scanner if scanner is not None else ObsScanner()
-        self.find_obs()
-        self.handlebar_left: str | None = None
-        self.handlebar_right: str | None = None
+        self.handlebar_left: int = 0
+        self.handlebar_right: int = 0
         self.track_id: str | None = None
         self.overtaking_callbacks: List[Callable] = []
         self.recording_callbacks: List[Callable] = []
@@ -80,15 +79,18 @@ class ObsBT:
         self.unittesting: bool = False
         self.history: deque = deque(maxlen=100)
 
-    def find_obs(self) -> None:
-        asyncio.run(self.my_scanner.run())
-        self.obs_address = self.my_scanner.obs_address
+    async def find_obs(self) -> None:
+        await self.my_scanner.run()
+        if self.obs_address is None:
+            self.obs_address = self.my_scanner.obs_address
         assert self.obs_address is not None
 
     def overtaking_handler(self, sender: str, data: bytearray) -> None:
         """Simple notification handler which prints the data received."""
         t, l, r = struct.unpack("Ihh", data)
-        logger.info(f"sensortime: {t}, Left distance {l}, right distance {r}")
+        logger.info(
+            f"Overtaking event: sensortime: {t}, Left distance {l}, right distance {r}"
+        )
         for callback in self.overtaking_callbacks:
             callback(
                 distance_l=l - self.handlebar_left,
@@ -105,6 +107,16 @@ class ObsBT:
         self.history.append(
             DistanceMeasurement(t, l - self.handlebar_left, r - self.handlebar_right)
         )
+
+        for callback in self.recording_callbacks:
+            callback(
+                distance_l=l - self.handlebar_left,
+                distance_r=r - self.handlebar_right,
+                handlebars_l=self.handlebar_left,
+                handlebar_r=self.handlebar_right,
+                track_id=self.track_id,
+                sensortime=t,
+            )
 
     async def connect(self) -> None:
         def disconnected_callback(client: bleak.BleakClient) -> None:
@@ -135,6 +147,7 @@ class ObsBT:
                 await asyncio.sleep(1)
 
     async def run(self) -> None:
+        await self.find_obs()
         while not self.bt_connected:
             try:
                 if not self.bt_connecting:
@@ -142,9 +155,9 @@ class ObsBT:
                     self.bt_connecting = True
                     assert isinstance(self.obs_address, str)
                     await self.connect()
-                else:
+                else:  # pragma: no cover
                     await asyncio.sleep(1)
-            except BleakDeviceNotFoundError:
+            except BleakError:  # pragma: no cover
                 logger.info(
                     f"lost connection, reconnecting. connecting={self.bt_connecting}"
                 )

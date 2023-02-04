@@ -19,8 +19,8 @@ def test_bluetooth() -> None:
     with patch("bleak.BleakScanner") as p:
         p.return_value.start = AsyncMock()
         p.return_value.stop = AsyncMock()
-        with pytest.raises(obs_picamera.bluetooth.ObsScannerError):
-            obsbt = obs_picamera.bluetooth.ObsBT()
+
+        obsbt = obs_picamera.bluetooth.ObsBT()
 
     with patch("bleak.BleakScanner") as p:
         scanner = obs_picamera.bluetooth.ObsScanner()
@@ -49,6 +49,7 @@ def test_bluetooth() -> None:
                 struct.pack("hh", 1, 2)
             )
             obsbt = obs_picamera.bluetooth.ObsBT(scanner=scanner)
+            obsbt.obs_address = "obsadddr"
             obsbt.unittesting = True
             asyncio.run(obsbt.connect())
             obsbt.bt_connected = False

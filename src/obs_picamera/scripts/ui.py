@@ -14,6 +14,19 @@
    limitations under the License.
 """
 
+import asyncio
+import json
+import logging
+import threading
+from pathlib import Path
+
+from obs_picamera.bluetooth import ObsBT, ObsScannerError
+
+# from obs_picamera.recorder import Recorder
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
 from threading import Timer
 
 import remi.gui as gui
@@ -21,16 +34,57 @@ from remi import App, start
 
 
 class MyApp(App):
-    def __init__(self, *args):
+    def __init__(self, *args, recorder=None):
         super().__init__(*args)
 
     def idle(self):
-        self.counter.set_text("Running Time: " + str(self.count))
-        self.progress.set_value(self.count % 100)
+        if hasattr(self, "counter"):
+            self.counter.set_text(f"DATA {self.count} {str(self.data)}")
+        else:
+            logger.info("no counter")
+
+    def _get_list_from_app_args(self, name):
+        return super()._get_list_from_app_args(name)
+
+    def data_received(self, **kwargs):
+        logger.info(kwargs)
+        self.data = kwargs
 
     def main(self):
+        self.data = {}
+        # self.recorder = Recorder()
         video_container = gui.Container(width="100%", margin="2px auto")
-        self.img = gui.Image("", height=100, margin="10px")
+        self.stop_flag = False
+
+        self.img = gui.Image("", margin="10px", width=806, height=600)
+        self.video = gui.VideoPlayer(width=806, height=600)
+        self.count = 0
+        self.counter = gui.Label("", width=200, height=30, margin="10px")
+        video_container.append([self.img, self.video, self.counter])
+        # kick of regular display of counter
+        self.display_counter()
+        t = threading.Thread(target=self.loop)
+        t.start()
+        return video_container
+
+    def loop(self):
+        while True:
+            try:
+                obsbt = ObsBT()
+                # obsbt.overtaking_callbacks.append(self.record_callback)
+                obsbt.recording_callbacks.append(self.data_received)
+                asyncio.run(obsbt.run())
+            except ObsScannerError:
+                logger.exception("Restarting bluetooth connection")
+
+    def record_callback(self, **kwargs) -> None:
+        target_dir = Path("/home/pi/recordings") / kwargs["track_id"]
+        target_dir.mkdir(parents=True, exist_ok=True)
+        self.recorder.save_snippet_to(
+            open(target_dir / f"{kwargs['sensortime']}.h264", "wb")
+        )
+        json.dump(kwargs, open(target_dir / f"{kwargs['sensortime']}.json", "w"))
+        logger.info(f"saved to {target_dir}")
 
     def __main(self):
         # the margin 0px auto centers the main container
@@ -340,10 +394,7 @@ class MyApp(App):
         super().on_close()
 
 
-if __name__ == "__main__":
-    # starts the webserver
-    # optional parameters
-    # start(MyApp,address='127.0.0.1', port=8081, multiple_instance=False,enable_file_cache=True, update_interval=0.1, start_browser=True)
+def main():
     start(
         MyApp,
         debug=True,
@@ -352,3 +403,10 @@ if __name__ == "__main__":
         start_browser=True,
         multiple_instance=True,
     )
+
+
+if __name__ == "__main__":
+    # starts the webserver
+    # optional parameters
+    # start(MyApp,address='127.0.0.1', port=8081, multiple_instance=False,enable_file_cache=True, update_interval=0.1, start_browser=True)
+    main()
